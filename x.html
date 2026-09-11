@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rudra — Video Editor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg: #0D0D0F;
+    --bg-alt: #17181B;
+    --ink: #EDEAE3;
+    --ink-dim: #918D84;
+    --amber: #E8A33D;
+    --teal: #3E8888;
+    --line: #2A2B2E;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .display{
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.01em;
+    line-height: 0.9;
+  }
+
+  .mono{
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(13,13,15,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    height: 68px;
+  }
+  .nav-name{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.03em;
+  }
+  .nav-links{
+    display:flex;
+    gap: 28px;
+    font-size: 0.9rem;
+    color: var(--ink-dim);
+  }
+  .nav-links a:hover{ color: var(--amber); }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding: 120px 0 90px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .timecode-row{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    color: var(--ink-dim);
+    font-size: 0.85rem;
+    margin-bottom: 28px;
+  }
+  .timecode-dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber);
+  }
+  .hero h1{
+    font-size: clamp(4.5rem, 13vw, 9.5rem);
+    color: var(--ink);
+  }
+  .hero .role{
+    display:flex;
+    gap: 18px;
+    align-items:baseline;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .hero .role span{
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    color: var(--teal);
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .hero p.tagline{
+    max-width: 540px;
+    margin-top: 26px;
+    color: var(--ink-dim);
+    font-size: 1.05rem;
+  }
+  .hero .cta-row{
+    margin-top: 40px;
+    display:flex;
+    gap: 18px;
+    align-items:center;
+  }
+  .btn{
+    display:inline-block;
+    padding: 13px 26px;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .btn:hover{ background: var(--amber); color: #0D0D0F; }
+  .btn-ghost{
+    color: var(--ink-dim);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .btn-ghost:hover{ color: var(--ink); border-color: var(--ink-dim); }
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding: 64px 0 36px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-head h2{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+  }
+  .section-head .count{
+    color: var(--ink-dim);
+    font-size: 0.85rem;
+  }
+
+  /* ---------- WORK GRID ---------- */
+  .filmstrip{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .clip{
+    background: var(--bg-alt);
+    padding: 34px 30px;
+    position: relative;
+    transition: background 0.25s ease;
+  }
+  .clip:hover{ background: #1c1e22; }
+  .clip-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom: 22px;
+  }
+  .clip-num{
+    font-family:'IBM Plex Mono', monospace;
+    color: var(--ink-dim);
+    font-size: 0.8rem;
+  }
+  .clip-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--teal);
+    border: 1px solid var(--teal);
+    padding: 3px 9px;
+  }
+  .clip h3{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.01em;
+    margin-bottom: 10px;
+  }
+  .clip p{
+    color: var(--ink-dim);
+    font-size: 0.92rem;
+    max-width: 40ch;
+  }
+  .platform-row{
+    display:flex;
+    gap: 12px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+  .platform-tile{
+    position: relative;
+    width: 150px;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #0D0D0F;
+    border: 1px solid var(--line);
+    display:block;
+  }
+  .platform-tile img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display:block;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  .platform-tile:hover img{ transform: scale(1.06); }
+  .platform-tile .play{
+    position:absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(13,13,15,0.72);
+    border: 1px solid var(--amber);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .platform-tile .play::after{
+    content: '';
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent var(--amber);
+    margin-left: 3px;
+  }
+  .platform-tile .label{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    padding: 5px 8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink);
+    background: linear-gradient(to top, rgba(13,13,15,0.92), transparent);
+  }
+  .platform-tile.disabled{
+    opacity: 0.4;
+    pointer-events: none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .platform-tile.disabled .label{
+    position: static;
+    background: none;
+    color: var(--ink-dim);
+  }
+
+  .platform-tile.insta{
+    background: linear-gradient(135deg, #4f5bd5, #962fbf, #d62976, #fa7e1e, #feda75);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .platform-tile.insta:hover{ filter: brightness(1.08); }
+  .platform-tile.insta svg{
+    width: 26px; height: 26px;
+    position: relative;
+    z-index: 1;
+  }
+  .platform-tile.insta .label{
+    background: linear-gradient(to top, rgba(0,0,0,0.55), transparent);
+  }
+
+  @media (max-width: 700px){
+    .filmstrip{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about{
+    border-top: 1px solid var(--line);
+    padding: 70px 0 90px;
+    display:grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 60px;
+  }
+  .about-mark{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 12vw, 8rem);
+    color: var(--bg-alt);
+    -webkit-text-stroke: 1.5px var(--line);
+    line-height: 0.85;
+  }
+  .about-copy p{
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+    max-width: 56ch;
+    font-size: 1.02rem;
+  }
+  .about-copy strong{ color: var(--ink); font-weight: 500; }
+
+  .toolkit{
+    margin-top: 34px;
+    border-top: 1px solid var(--line);
+  }
+  .toolkit-row{
+    display:flex;
+    justify-content:space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+  .toolkit-row .label{ color: var(--ink-dim); }
+  .toolkit-row .val{ color: var(--ink); }
+
+  @media (max-width: 780px){
+    .about{ grid-template-columns: 1fr; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact{
+    border-top: 1px solid var(--line);
+    padding: 90px 0 70px;
+    text-align: left;
+  }
+  .contact h2{
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    max-width: 12ch;
+  }
+  .contact p{
+    color: var(--ink-dim);
+    margin: 22px 0 34px;
+    max-width: 50ch;
+  }
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 24px 0 40px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--ink-dim);
+    font-size: 0.8rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <div class="nav-name">RUDRA</div>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero wrap">
+  <h1 class="display">RUDRA</h1>
+  <div class="role">
+    <span>Video Editor</span>
+    <span style="color:var(--amber)">/</span>
+    <span>AI Video Editor</span>
+  </div>
+  <p class="tagline">I cut, grade, and generate video for brands worldwide — real estate, home products, and education — blending traditional editing with AI-powered production across multiple languages.</p>
+  <div class="cta-row">
+    <a class="btn" href="#work">View the work</a>
+    <a class="btn-ghost" href="mailto:rudrasvlog@gmail.com">Get in touch →</a>
+  </div>
+</section>
+
+<section id="work" class="wrap">
+  <div class="section-head">
+    <h2 class="display">Selected Work</h2>
+    <span class="count mono">04 CATEGORIES</span>
+  </div>
+
+  <div class="filmstrip">
+
+    <div class="clip">
+      <div class="clip-top">
+        <span class="clip-num mono">CAT 01</span>
+        <span class="clip-tag">AI</span>
+      </div>
+      <h3>AI Documentary</h3>
+      <p>Narrative, documentary-style videos recreated entirely with AI video generation.</p>
+      <div class="platform-row">
+        <div class="platform-tile disabled"><span class="label">Instagram — soon</span></div>
+        <a class="platform-tile" href="https://youtu.be/f6tYqUfLpWs?si=rPq1v8DXDjFcRiDA" target="_blank" rel="noopener">
+          <img src="https://img.youtube.com/vi/f6tYqUfLpWs/hqdefault.jpg" alt="AI Documentary on YouTube">
+          <span class="play"></span>
+          <span class="label">YouTube</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="clip">
+      <div class="clip-top">
+        <span class="clip-num mono">CAT 02</span>
+        <span class="clip-tag">AI</span>
+      </div>
+      <h3>AI Talking Face</h3>
+      <p>AI-generated talking-face content built for brand and product marketing.</p>
+      <div class="platform-row">
+        <a class="platform-tile" href="https://www.instagram.com/reel/Db2-ew0lal8/?utm_source=ig_web_copy_link&amp;stkn=MzRlODBiNWFlZA==" target="_blank" rel="noopener">
+          <img src="assets/talking-face-1.jpg" alt="AI Talking Face reel on Instagram">
+          <span class="play"></span>
+          <span class="label">Instagram</span>
+        </a>
+        <a class="platform-tile" href="https://www.instagram.com/reel/DaPdHres5c6/?utm_source=ig_web_copy_link&amp;stkn=MzRlODBiNWFlZA==" target="_blank" rel="noopener">
+          <img src="assets/talking-face-2.jpg" alt="AI Talking Face reel on Instagram">
+          <span class="play"></span>
+          <span class="label">Instagram</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="clip">
+      <div class="clip-top">
+        <span class="clip-num mono">CAT 03</span>
+        <span class="clip-tag">EDIT</span>
+      </div>
+      <h3>Real Estate Video Editing</h3>
+      <p>Property and real estate edits — walkthroughs, aerials, and listing-led cuts.</p>
+      <div class="platform-row">
+        <a class="platform-tile" href="https://youtu.be/0rHeCTVd7Nc?si=EkXQhxX-LvwaYF0H" target="_blank" rel="noopener">
+          <img src="https://img.youtube.com/vi/0rHeCTVd7Nc/hqdefault.jpg" alt="Real estate edit on YouTube">
+          <span class="play"></span>
+          <span class="label">YouTube</span>
+        </a>
+        <a class="platform-tile" href="https://youtu.be/Uga0IYC9CgE?si=rEKNydJHD3rFadwf" target="_blank" rel="noopener">
+          <img src="https://img.youtube.com/vi/Uga0IYC9CgE/hqdefault.jpg" alt="Real estate edit on YouTube">
+          <span class="play"></span>
+          <span class="label">YouTube</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="clip">
+      <div class="clip-top">
+        <span class="clip-num mono">CAT 04</span>
+        <span class="clip-tag">EDIT</span>
+      </div>
+      <h3>Reels &amp; Shorts</h3>
+      <p>Short-form, platform-native edits built for social-first delivery.</p>
+      <div class="platform-row">
+        <a class="platform-tile" href="https://www.instagram.com/reel/DbNtnGIjtso/?utm_source=ig_web_copy_link&amp;stkn=MzRlODBiNWFlZA==" target="_blank" rel="noopener">
+          <img src="assets/reel-1.jpg" alt="Reel on Instagram">
+          <span class="play"></span>
+          <span class="label">Instagram</span>
+        </a>
+        <a class="platform-tile" href="https://www.instagram.com/reel/Da5U5n8AIjF/?utm_source=ig_web_copy_link&amp;stkn=MzRlODBiNWFlZA==" target="_blank" rel="noopener">
+          <img src="assets/reel-2.jpg" alt="Reel on Instagram">
+          <span class="play"></span>
+          <span class="label">Instagram</span>
+        </a>
+        <a class="platform-tile" href="https://youtube.com/shorts/AgnwgJnt1kA?si=onPaTL0Lj7dBEBAr" target="_blank" rel="noopener">
+          <img src="https://img.youtube.com/vi/AgnwgJnt1kA/hqdefault.jpg" alt="Reel/Short on YouTube">
+          <span class="play"></span>
+          <span class="label">YouTube</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="about" class="about wrap">
+  <div class="about-mark">01</div>
+  <div class="about-copy">
+    <h2 class="display" style="font-size:2.6rem; margin-bottom:22px;">About</h2>
+    <p>I'm <strong>Rudra</strong>, a freelance video editor and AI video editor based in India, working with brands globally. I work at the edge of traditional editing and AI-generated production — building content for brands in real estate, home products, and education.</p>
+    <p>Most of my recent work uses <strong>Veo 3</strong> and <strong>Kling</strong> to generate video content, paired with marketing scripts written in English, Hindi, or Hinglish depending on the brand and audience. I adapt language and tone to fit wherever the content needs to land.</p>
+
+
+  </div>
+</section>
+
+<section id="contact" class="contact wrap">
+  <h2>Let's cut something together.</h2>
+  <p>Have a brand, a product, or a story that needs an edit? I'm currently taking on new projects.</p>
+  <a class="btn" href="mailto:rudrasvlog@gmail.com">rudrasvlog@gmail.com</a>
+</section>
+
+<footer class="wrap">
+  <span>© <span id="year"></span> Rudra — Video Editor</span>
+  <span>Based in India</span>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
